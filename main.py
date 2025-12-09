@@ -2,7 +2,9 @@ import numpy as np
 
 class Gameboard:
     def __init__(self, size=3):
+        self.max_index = size * size - 1
         self.board = np.arange(size * size).reshape(size, size).astype(str)
+        self.char_width = len(str(self.max_index))
 
     def make_move(self, position, character):
         # normalize position to string (board stores string values)
@@ -55,10 +57,26 @@ class Gameboard:
         return self._row_contains_only(character) or\
                self._col_contains_only(character) or \
                self._ul_br_diag_contains_only(character) or \
-               self._ur_bl_diag_contains_only(character)
+               self._ur_bl_diag_contains_only(character) or \
+               not np.any(np.char.isdigit(self.board))
+
+    def is_tie(self) -> bool:
+        """
+        Return True if the game is a tie (no empty spaces left).
+        """
+        return not np.any(np.char.isdigit(self.board))
     
+    def is_done(self, character: str) -> bool:
+        return self.is_winner(character) or self.is_tie()
+
     def display(self):
-        print(self.board)
+        # format strings so each cell is left-padded to the board's char width
+        formatted = np.array2string(
+            self.board,
+            separator=' ',
+            formatter={'str_kind': lambda x: x.rjust(self.char_width)}
+        )
+        print(formatted)
     
 class Player:
     """
@@ -71,8 +89,15 @@ class Player:
     def decide_move(self, gameboard: Gameboard) -> None:
         raise NotImplementedError("This method should be overridden by subclasses.")
     
-    def is_winner(self) -> bool:
-        return self.board.is_winner(self.character)
+    def move_not_available(self) -> bool:
+        if self.board.is_tie():
+            print("The game is a tie!")
+            return True
+
+        if self.board.is_winner(self.character):    
+            print(f"Player {self.character} wins!")
+            return True
+        return False
 
 class HumanPlayer(Player):
     """
@@ -86,25 +111,51 @@ class HumanPlayer(Player):
                 return
             print("Invalid move. Try again.")
 
+class RandomPlayer(Player):
+    """
+    Player subclass that randomly tries moves until one succeeds.
+    """
+    def decide_move(self, gameboard: Gameboard) -> None:
+        # if no numeric (available) positions remain, do nothing
+        if not np.any(np.char.isdigit(self.board.board)):
+            return
+        while True:
+            pos = np.random.randint(0, self.board.max_index + 1)
+            if self.board.make_move(pos, self.character):
+                return
+
 def main():
     print("Hello from tic-tac-toe!")
-    game = Gameboard()
+    # prompt for board size
+    while True:
+        size_in = input("Enter board size (integer >= 3, default 3): ").strip()
+        if size_in == "":
+            size = 3
+            break
+        try:
+            size = int(size_in)
+            if size >= 3:
+                break
+            print("Please enter an integer >= 3.")
+        except ValueError:
+            print("Invalid input. Please enter an integer.")
+    game = Gameboard(size)
     game.display()
 
+    player_x = HumanPlayer("X", game)
+    player_o = HumanPlayer("O", game)
+    
     while True:
-        player_x = HumanPlayer("X", game)
+        
         player_x.decide_move(game)
         game.display()
-        if player_x.is_winner():
-            print("Player X wins!")
-            break
-        player_o = HumanPlayer("O", game)
+        if player_x.move_not_available():
+            break        
+        
         player_o.decide_move(game)
         game.display()
-        if player_o.is_winner():
-            print("Player O wins!")
+        if player_o.move_not_available():
             break
-
 
 if __name__ == "__main__":
     main()
