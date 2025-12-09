@@ -140,18 +140,27 @@ def main():
         except ValueError:
             print("Invalid input. Please enter an integer.")
     game = Gameboard(size)
-    game.display()
 
-    player_x = HumanPlayer("X", game)
-    player_o = HumanPlayer("O", game)
+    def choose_player(letter: str):
+        while True:
+            choice = input(f"Should player {letter} be human or ai? [h/a] (default h): ").strip().lower()
+            if choice == "" or choice.startswith("h"):
+                return HumanPlayer(letter, game)
+            if choice.startswith("a") or choice.startswith("r"):
+                return RandomPlayer(letter, game)
+            print("Enter 'h' for human or 'a' for ai.")
+
+    player_x = choose_player("X")
+    player_o = choose_player("O")
     
+    game.display()
     while True:
         
         player_x.decide_move(game)
         game.display()
         if player_x.move_not_available():
             break        
-        
+
         player_o.decide_move(game)
         game.display()
         if player_o.move_not_available():
