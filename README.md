@@ -1,5 +1,5 @@
 # tic-tac-toe
-##Running this project
+## Running this project
 
 Clone it like you would any other git repo
 
@@ -41,4 +41,5 @@ an older app style and I feel like I could implement a lot more with that choice
 and not had to refactor some of the ai generated logic to make the flow smoother. With the arbitrary board size I would have liked to add an arbitrary number of players as well to put another twist on the game but I was fairly certain I would
 not have time to do it. I also would have liked to add unit testing given more time but making sure the game was working and sufficiently feature complete took priority. It was a fun little excercise, and I partially even surprised myself with
 how much I got done. (AI is great isn't it?)
+
 
